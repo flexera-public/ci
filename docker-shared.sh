@@ -27,13 +27,13 @@ fi
 # Login to DockerHub
 login ()
 {
-  if [ -z "${DOCKERHUB_USER}${DOCKERHUB_EMAIL}${DOCKERHUB_PASSWORD}" ]
+  if [ -z "${DOCKERHUB_USER}${DOCKERHUB_PASSWORD}" ]
   then
-    echo "ERROR: must export DOCKERHUB_(EMAIL|PASSWORD|USER) to perform this action"
+    echo "ERROR: must export DOCKERHUB_(PASSWORD|USER) to perform this action"
     exit 40
   else
     echo "Logging into DockerHub as $DOCKERHUB_USER"
-    docker login -e $DOCKERHUB_EMAIL -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
+    docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
   fi
 }
 
@@ -71,13 +71,31 @@ push ()
 #   - build and push an image
 ci ()
 {
-  if [[ "$1" =~ (^(latest|staging-|production-|experimental))|(_cow$) && "$2" == "false" ]]
+  if [[ "$2" == "true" ]]
   then
+    echo "Skipping Docker image build due to pull-request status ($2)"
+  elif [[ ! "$1" =~ (^(latest|staging|production-|experimental))|(_cow$) ]]
+  then
+    echo "Skipping Docker image build due to uninteresting branch name ($1)"
+  elif [[ "$1" == "staging" ]]
+  then
+    # Check if TRAVIS_COMMIT is already in Docker's image git.ref
+    login
+    image=$org_name/$app_name:$tag
+    echo "Pulling $image to extract git.ref..."
+    docker pull $image
+    image_git_ref=$(docker inspect $image | grep git.ref | head -1 | cut -d: -f2 | grep -o '[0-9a-fA-F]*')
+    if [[ $image_git_ref == $TRAVIS_COMMIT ]] ; then
+      echo "Skipping Docker image build due to staging commit sha (${image_git_ref}) is equal to current staging Docker image git.ref"
+    else
+      echo "Building staging tag since older's tag git.ref (${image_git_ref}) doesn't match git commit sha (${TRAVIS_COMMIT})"
+      build $1
+      push $1
+    fi
+  else # tag =~ (^(latest|production-|experimental))|(_cow$) : always build
     login
     build $1
     push $1
-  else
-    echo "Skipping Docker image build due to uninteresting branch name ($1) or pull-request status ($2)"
   fi
 }
 
@@ -116,7 +134,7 @@ main ()
     master)
       tag=latest
       ;;
-    staging|production)
+    production)
       tag="${git_branch}-isolated"
       ;;
     *)
