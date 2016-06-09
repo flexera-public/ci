@@ -77,25 +77,18 @@ ci ()
   elif [[ ! "$1" =~ (^(latest|staging|production-|experimental))|(_cow$) ]]
   then
     echo "Skipping Docker image build due to uninteresting branch name ($1)"
-  elif [[ "$1" == "staging" ]]
-  then
+  else
     # Check if TRAVIS_COMMIT is already in Docker's image git.ref
-    login
-    image=$org_name/$app_name:$tag
-    echo "Pulling $image to extract git.ref..."
-    docker pull $image
-    image_git_ref=$(docker inspect $image | grep git.ref | head -1 | cut -d: -f2 | grep -o '[0-9a-fA-F]*')
+    token=`curl -H 'Accept: application/json' --user "$DOCKERHUB_USER:$DOCKERHUB_PASSWORD" "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${org_name}/${app_name}:pull" | jq --raw-output .token`
+    image_git_ref=`curl -H "Authorization: Bearer $token" "https://registry-1.docker.io/v2/${org_name}/${app_name}/manifests/$1" | jq --raw-output .history[0].v1Compatibility | jq --raw-output '.config.Labels["git.ref"]'`
     if [[ $image_git_ref == $TRAVIS_COMMIT ]] ; then
-      echo "Skipping Docker image build due to staging commit sha (${image_git_ref}) is equal to current staging Docker image git.ref"
+      echo "Skipping Docker image build due to build's commit sha (${image_git_ref}) is equal to current $1 Docker image git.ref"
     else
-      echo "Building staging tag since older's tag git.ref (${image_git_ref}) doesn't match git commit sha (${TRAVIS_COMMIT})"
+      echo "Building $1 tag since current git.ref (${image_git_ref}) doesn't match build's commit sha (${TRAVIS_COMMIT})"
+      login
       build $1
       push $1
     fi
-  else # tag =~ (^(latest|production-|experimental))|(_cow$) : always build
-    login
-    build $1
-    push $1
   fi
 }
 
