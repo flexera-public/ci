@@ -71,7 +71,7 @@ push ()
 #   - build and push an image
 ci ()
 {
-  if [[ "$2" == "true" ]]
+  if [[ "$2" != "false" ]]
   then
     echo "Skipping Docker image build due to pull-request status ($2)"
   elif [[ ! "$1" =~ (^(latest|staging|production-|experimental))|(_cow$) ]]
