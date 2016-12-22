@@ -3,6 +3,10 @@
 # by bash scripts. It contains a main() function which you can call from
 # your own script.
 #
+
+# Automatically exit on error
+set -e
+
 # Before sourcing this script, you MUST define the following:
 #    - a function before_build()
 
@@ -86,8 +90,7 @@ ci ()
     else
       echo "Building $1 tag since current git.ref (${image_git_ref}) doesn't match build's commit sha (${TRAVIS_COMMIT})"
       login
-      build $1
-      push $1
+      build $1 && push $1
     fi
   fi
 }
