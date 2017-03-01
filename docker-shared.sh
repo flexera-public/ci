@@ -17,10 +17,10 @@ then
   exit 20
 fi
 
-# Deduce some information about the Docker repository and build args
-org_name=rightscale
-app_name=`basename $PWD`
-gitref=`git rev-parse --verify HEAD`
+# If not provided, deduce some information about the Docker repository and build args
+[ -n "$org_name" ] || org_name=rightscale
+[ -n "$app_name" ] || app_name=`basename $PWD`
+[ -n "$gitref" ]   || gitref=`git rev-parse --verify HEAD`
 
 if [ $? != 0 ]
 then
