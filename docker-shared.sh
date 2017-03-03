@@ -89,7 +89,7 @@ ci ()
   if [[ "$2" != "false" ]]
   then
     echo "Skipping Docker image build due to pull-request status ($2)"
-  elif [[ ! "$1" =~ (^(latest|staging|production-|experimental))|(_cow$) ]]
+  elif [[ ! "$1" =~ (^(master|staging|production-|experimental))|(_cow$) ]]
   then
     echo "Skipping Docker image build due to uninteresting branch name ($1)"
   else
