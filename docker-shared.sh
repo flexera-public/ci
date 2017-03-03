@@ -18,11 +18,10 @@ then
 fi
 
 # If not provided, deduce some information about the Docker repository and build args
+[ -n "$default_branch" ] || default_branch=master
 [ -n "$org_name" ] || org_name=rightscale
 [ -n "$app_name" ] || app_name=`basename $PWD`
 [ -n "$gitref" ]   || gitref=`git rev-parse --verify HEAD`
-
-default_branch=`git branch -r --points-at refs/remotes/origin/HEAD | grep '\->' | cut -d' ' -f5 | cut -d/ -f2`
 
 if [ $? != 0 ]
 then
