@@ -47,9 +47,15 @@ build ()
 {
   before_build
 
-  echo "Building Docker image $org_name/$app_name:$1"
-  docker build --build-arg gitref=$gitref --tag $org_name/$app_name:$1 .
+  local default_branch=`git branch -r --points-at refs/remotes/origin/HEAD | grep '\->' | cut -d' ' -f3`
 
+  if [ "$1" == "default_branch" ]; then
+    echo "Building Docker image $org_name/$app_name:$1 (also latest because default branch)"
+    docker build --build-arg gitref=$gitref --tag $org_name/$app_name:$1 --tag $org_name/$app_name:latest .
+  else
+    echo "Building Docker image $org_name/$app_name:$1"
+    docker build --build-arg gitref=$gitref --tag $org_name/$app_name:$1 .
+  fi
   return $?
 }
 
@@ -63,8 +69,15 @@ clean ()
 # Push a named tag of this repo's image to DockerHub. This is a nearly-useless shortcut.
 push ()
 {
-  echo "Pushing Docker image $org_name/$app_name:$1"
-  docker push $org_name/$app_name:$1
+  local default_branch=`git branch -r --points-at refs/remotes/origin/HEAD | grep '\->' | cut -d' ' -f3`
+
+  if [ "$1" == "$default_branch" ]; then
+    echo "Pushing Docker image $org_name/$app_name:$1 (also latest because default branch)"
+      docker push $org_name/$app_name:latest && docker push $org_name/$app_name:$1
+  else
+    echo "Pushing Docker image $org_name/$app_name:$1"
+    docker push $org_name/$app_name:$1
+  fi
 
   return $?
 }
@@ -127,9 +140,6 @@ main ()
 
   # Map the git branch name to an image tag
   case $git_branch in
-    master)
-      tag=latest
-      ;;
     production)
       tag="${git_branch}-isolated"
       ;;
