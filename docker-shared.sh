@@ -22,6 +22,8 @@ fi
 [ -n "$app_name" ] || app_name=`basename $PWD`
 [ -n "$gitref" ]   || gitref=`git rev-parse --verify HEAD`
 
+default_branch=`git branch -r --points-at refs/remotes/origin/HEAD | grep '\->' | cut -d' ' -f5 | cut -d/ -f2`
+
 if [ $? != 0 ]
 then
   echo "ERROR: working directory must be a git repository"
@@ -47,9 +49,7 @@ build ()
 {
   before_build
 
-  local default_branch=`git branch -r --points-at refs/remotes/origin/HEAD | grep '\->' | cut -d' ' -f3`
-
-  if [ "$1" == "default_branch" ]; then
+  if [ "$1" == "$default_branch" ]; then
     echo "Building Docker image $org_name/$app_name:$1 (also latest because default branch)"
     docker build --build-arg gitref=$gitref --tag $org_name/$app_name:$1 --tag $org_name/$app_name:latest .
   else
@@ -69,8 +69,6 @@ clean ()
 # Push a named tag of this repo's image to DockerHub. This is a nearly-useless shortcut.
 push ()
 {
-  local default_branch=`git branch -r --points-at refs/remotes/origin/HEAD | grep '\->' | cut -d' ' -f3`
-
   if [ "$1" == "$default_branch" ]; then
     echo "Pushing Docker image $org_name/$app_name:$1 (also latest because default branch)"
       docker push $org_name/$app_name:latest && docker push $org_name/$app_name:$1
