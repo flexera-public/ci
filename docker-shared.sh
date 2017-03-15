@@ -129,6 +129,10 @@ main ()
   then
     git_branch=$2
     echo "Assuming Git branch '$git_branch' by explicit request"
+  elif [ -n "$TRAVIS_BRANCH" ]
+  then
+    git_branch=$TRAVIS_BRANCH
+    echo "Assuming Git branch '$git_branch' from TRAVIS_BRANCH"
   else
     git_ref=$(git symbolic-ref HEAD 2>/dev/null)
     git_branch=${git_ref##refs/heads/}
