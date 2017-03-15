@@ -162,6 +162,9 @@ main ()
   push)
     push $tag
     ;;
+  login)
+    login
+    ;;
   *)
     help
     ;;
