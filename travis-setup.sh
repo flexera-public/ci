@@ -12,10 +12,10 @@ docker_install()
     export APT_DOCKER_PKG=$DEFAULT_APT_DOCKER_PKG
   fi
 
-  if [[ $ALLOW_UNAUTHENTICATED == "true" ]]
+  if [[ $APT_ALLOW_UNAUTHENTICATED == "true" ]]
   then
     echo "WARNING!!!! Installing unauthenticated packages !!!!"
-    export APT_PARAMS="--allow-unathenticated"
+    export APT_PARAMS="--allow-unauthenticated"
   else
     echo "*** Adding dockerproject key"
     sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys F76221572C52609D
