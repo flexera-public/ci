@@ -79,6 +79,15 @@ push ()
   return $?
 }
 
+# Promotes tag $1 to tag $2
+promote ()
+{
+  echo "Promoting $org_name/$app_name:$1 to $org_name/$app_name:$2"
+  docker pull $org_name/$app_name:$1
+  docker tag  $org_name/$app_name:$1 $org_name/$app_name:$2
+  docker push $org_name/$app_name:$2
+}
+
 # Perform a continuous integration build. This involves the following steps:
 #   - decide whether we need an image based on $1 (tag name) and $2 (pull request number)
 #   - download bare Docker binary into bin; add bin to path
@@ -95,8 +104,13 @@ ci ()
     # Check if TRAVIS_COMMIT is already in Docker's image git.ref
     token=`curl -H 'Accept: application/json' --user "$DOCKERHUB_USER:$DOCKERHUB_PASSWORD" "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${org_name}/${app_name}:pull" | jq --raw-output .token`
     image_git_ref=`curl -H "Authorization: Bearer $token" "https://registry-1.docker.io/v2/${org_name}/${app_name}/manifests/$1" | jq --raw-output .history[0].v1Compatibility | jq --raw-output '.config.Labels["git.ref"]'`
+    image_git_ref_latest=`curl -H "Authorization: Bearer $token" "https://registry-1.docker.io/v2/${org_name}/${app_name}/manifests/latest" | jq --raw-output .history[0].v1Compatibility | jq --raw-output '.config.Labels["git.ref"]'`
     if [[ $image_git_ref == $TRAVIS_COMMIT ]] ; then
       echo "Skipping Docker image build due to build's commit sha (${image_git_ref}) is equal to current $1 Docker image git.ref"
+    elif [[ $image_git_ref_latest == $TRAVIS_COMMIT ]] ; then
+      echo "Skipping Docker image build since current latest tag contains build's commit sha (${image_git_ref_latest})."
+      login
+      promote latest $1
     else
       echo "Building $1 tag since current git.ref (${image_git_ref}) doesn't match build's commit sha (${TRAVIS_COMMIT})"
       login
