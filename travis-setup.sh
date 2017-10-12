@@ -1,11 +1,10 @@
-# Automatically exit on error
-set -e
-
 # VARIABLES
 DEFAULT_APT_DOCKER_PKG="docker-engine=1.12.5-0~ubuntu-trusty"
 
 docker_install()
 {
+  set -e # Automatically exit on error
+
   if  [ -z "$APT_DOCKER_PKG" ]
   then
     echo "*** APT_DOCKER_PKG undefined, using default: $DEFAULT_APT_DOCKER_PKG"
