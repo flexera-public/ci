@@ -166,6 +166,13 @@ main ()
 
   pull_request_number=$3
 
+  if [[ $CI_USE_REMOTE_DOCKER_HOST =~ ^(true|TRUE|1)$ ]]
+  then
+    echo "ENABLING Usage of Docker build farm"
+    WORKER=`bin/dqueue-cli -H ${CI_REMOTE_DOCKER_IP}:8675 target repoqueue /target/$app_name`
+    export DOCKER_HOST=tcp://${WORKER}:2376
+  fi
+
   # Run the command
   case $1 in
   ci)
