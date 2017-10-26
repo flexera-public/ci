@@ -82,7 +82,6 @@ push ()
 # Promotes tag $1 to tag $2
 promote ()
 {
-  docker_setup
   echo "Promoting $org_name/$app_name:$1 to $org_name/$app_name:$2"
   docker $TLS_OPTS pull $org_name/$app_name:$1
   docker $TLS_OPTS tag  $org_name/$app_name:$1 $org_name/$app_name:$2
