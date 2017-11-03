@@ -38,7 +38,7 @@ login ()
     exit 40
   else
     echo "Logging into DockerHub as $DOCKERHUB_USER"
-    docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
+    docker $TLS_OPTS login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
   fi
 }
 
@@ -50,10 +50,10 @@ build ()
 
   if [ "$1" == "$default_branch" ]; then
     echo "Building Docker image $org_name/$app_name:$1 (also latest because default branch)"
-    docker build --build-arg gitref=$gitref --tag $org_name/$app_name:$1 --tag $org_name/$app_name:latest .
+    docker $TLS_OPTS build --build-arg gitref=$gitref --tag $org_name/$app_name:$1 --tag $org_name/$app_name:latest .
   else
     echo "Building Docker image $org_name/$app_name:$1"
-    docker build --build-arg gitref=$gitref --tag $org_name/$app_name:$1 .
+    docker $TLS_OPTS build --build-arg gitref=$gitref --tag $org_name/$app_name:$1 .
   fi
   return $?
 }
@@ -70,10 +70,10 @@ push ()
 {
   if [ "$1" == "$default_branch" ]; then
     echo "Pushing Docker image $org_name/$app_name:$1 (also latest because default branch)"
-      docker push $org_name/$app_name:latest && docker push $org_name/$app_name:$1
+      docker $TLS_OPTS push $org_name/$app_name:latest && docker $TLS_OPTS push $org_name/$app_name:$1
   else
     echo "Pushing Docker image $org_name/$app_name:$1"
-    docker push $org_name/$app_name:$1
+    docker $TLS_OPTS push $org_name/$app_name:$1
   fi
 
   return $?
@@ -83,9 +83,9 @@ push ()
 promote ()
 {
   echo "Promoting $org_name/$app_name:$1 to $org_name/$app_name:$2"
-  docker pull $org_name/$app_name:$1
-  docker tag  $org_name/$app_name:$1 $org_name/$app_name:$2
-  docker push $org_name/$app_name:$2
+  docker $TLS_OPTS pull $org_name/$app_name:$1
+  docker $TLS_OPTS tag  $org_name/$app_name:$1 $org_name/$app_name:$2
+  docker $TLS_OPTS push $org_name/$app_name:$2
 }
 
 # Perform a continuous integration build. This involves the following steps:
@@ -165,6 +165,16 @@ main ()
   echo "Derived Docker image tag '$tag' from Git branch name"
 
   pull_request_number=$3
+
+  if [[ $CI_USE_REMOTE_DOCKER_HOST =~ ^(true|TRUE|1)$ ]]
+  then
+    echo "ENABLING Usage of Docker build farm"
+    cip_dir="/tmp/ci-private"
+    git clone --depth 1 git@github.com:rightscale/ci-private.git $cip_dir
+    WORKER=`$cip_dir/bin/dqueue-cli -H buildfarm.test.rightscale.com:8675 target repoqueue /target/$app_name`
+    export DOCKER_HOST=tcp://${WORKER}:2376
+    export TLS_OPTS="${TLS_OPTS} --tls --tlscacert=$cip_dir/certs/buildfarm/fullchain.pem --tlscert=$cip_dir/certs/buildfarm/cert.pem --tlskey=$cip_dir/certs/buildfarm/privkey.pem"
+  fi
 
   # Run the command
   case $1 in
