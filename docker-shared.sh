@@ -166,7 +166,7 @@ main ()
 
   pull_request_number=$3
 
-  if [[ $CI_USE_REMOTE_DOCKER_HOST =~ ^(true|TRUE|1)$ ]]
+  if [[ $CI_USE_REMOTE_DOCKER_HOST =~ ^(true|TRUE|1)$ ]] || ! [[ $TRAVIS_SUDO =~ ^(true|TRUE|1)$ ]]
   then
     echo "ENABLING Usage of Docker build farm"
     cip_dir="/tmp/ci-private"
