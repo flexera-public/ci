@@ -118,7 +118,8 @@ func changedDirs(sh1, sh2 string) []string {
 	return getSortedKeys(paths)
 }
 
-func listBranches(repo *git.Repository) {
+func listBranches() {
+	repo := openRepo()
 	branches, _ := repo.Branches()
 	branch, _ := branches.Next()
 
@@ -141,6 +142,42 @@ func listReferences() {
 	}
 }
 
+func getBranches() (branches map[string]string) {
+	repo := openRepo()
+	bs, _ := repo.Branches()
+	branch, err := bs.Next()
+	branches = make(map[string]string)
+
+	for branch != nil && err == nil {
+		branches[strings.TrimPrefix(branch.Name().String(), "refs/heads/")] = branch.Hash().String()
+		branch, err = bs.Next()
+	}
+
+	return
+}
+
+func getTags() (tags map[string]string) {
+	repo := openRepo()
+	ts, _ := repo.Tags()
+	tag, err := ts.Next()
+	tags = make(map[string]string)
+
+	for tag != nil && err == nil {
+		tagName := strings.TrimPrefix(tag.Name().String(), "refs/tags/")
+		tagObj, err := repo.TagObject(tag.Hash())
+		if err == nil {
+			// That is an annotated tag, extract Hash of destination
+			tags[tagName] = tagObj.Target.String()
+		} else {
+			// lightweight tag
+			tags[tagName] = tag.Hash().String()
+		}
+		tag, err = ts.Next()
+	}
+
+	return
+}
+
 func listObjects() {
 	repo := openRepo()
 	objs, _ := repo.Objects()
@@ -148,7 +185,6 @@ func listObjects() {
 
 	var err error
 	for obj != nil && err == nil {
-		fmt.Printf("%v - %v \n", obj.Type(), obj.ID())
 		obj, err = objs.Next()
 	}
 }
@@ -183,9 +219,27 @@ func listCommits() {
 }
 
 func expandSHA(givenSHA string) (realSHA string) {
-	switch {
-	case strings.HasPrefix(givenSHA, "HEAD"):
+	if strings.HasPrefix(givenSHA, "HEAD") {
 		return translateHead(givenSHA)
+	}
+
+	branches := getBranches()
+	if branches[givenSHA] != "" {
+		if Verbose {
+			fmt.Printf(" Found branch %v with hash %v \n", givenSHA, branches[givenSHA])
+		}
+		return branches[givenSHA]
+	}
+
+	tags := getTags()
+	if tags[givenSHA] != "" {
+		if Verbose {
+			fmt.Printf(" Found tag %v with hash %v \n", givenSHA, tags[givenSHA])
+		}
+		return tags[givenSHA]
+	}
+
+	switch {
 	case len(givenSHA) == 40:
 		return givenSHA
 	case len(givenSHA) > 40:
@@ -216,7 +270,7 @@ func getFullSHA(shortSHA string) (fullSHA string) {
 
 	switch n := len(results); n {
 	case 0:
-		errTxt := fmt.Sprintf("No SHA found starting with %s", shortSHA)
+		errTxt := fmt.Sprintf("No SHA/branch/tag found like \"%s\"", shortSHA)
 		panic(errors.New(errTxt))
 	case 1:
 		fullSHA = results[0]
@@ -240,7 +294,7 @@ func openRepo() *git.Repository {
 		var prevDir string
 		startDir, prevDir = filepath.Join(startDir, ".."), startDir
 		if startDir == prevDir {
-			panic(errors.New("Can't find git repo in current dir or any of its  parents\n"))
+			panic(errors.New("Can't find git repo in current dir or any of its  parents"))
 		}
 		repo, err = git.PlainOpen(startDir)
 	}

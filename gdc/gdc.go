@@ -34,7 +34,7 @@ import (
 
 // Verbose : If true, display debug messages
 var Verbose = false
-var version = "0.1.0"
+var version = "0.1.1"
 
 // Returns flags and params from command line
 func getFlagsAndParams() (flags map[string]string, command string, directory string) {
