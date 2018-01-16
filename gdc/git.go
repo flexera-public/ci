@@ -270,7 +270,7 @@ func getFullSHA(shortSHA string) (fullSHA string) {
 
 	switch n := len(results); n {
 	case 0:
-		errTxt := fmt.Sprintf("No SHA/branch/tag found like \"%s\"", shortSHA)
+		errTxt := fmt.Sprintf("No SHA/branch/tag found like %q", shortSHA)
 		panic(errors.New(errTxt))
 	case 1:
 		fullSHA = results[0]
