@@ -166,16 +166,6 @@ main ()
 
   pull_request_number=$3
 
-  if [[ $CI_USE_REMOTE_DOCKER_HOST =~ ^(true|TRUE|1)$ ]] || ! [[ $TRAVIS_SUDO =~ ^(true|TRUE|1)$ ]]
-  then
-    echo "ENABLING Usage of Docker build farm"
-    cip_dir="/tmp/ci-private"
-    git clone --depth 1 git@github.com:rightscale/ci-private.git $cip_dir
-    WORKER=`$cip_dir/bin/dqueue-cli -H buildfarm.test.rightscale.com:8675 target repoqueue /target/$app_name`
-    export DOCKER_HOST=tcp://${WORKER}:2376
-    export TLS_OPTS="${TLS_OPTS} --tls --tlscacert=$cip_dir/certs/buildfarm/fullchain.pem --tlscert=$cip_dir/certs/buildfarm/cert.pem --tlskey=$cip_dir/certs/buildfarm/privkey.pem"
-  fi
-
   # Run the command
   case $1 in
   ci)
