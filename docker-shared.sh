@@ -137,9 +137,15 @@ help ()
 #   main $*
 main ()
 {
-  # Figure out which tag to use for this image build; either use the name passed
-  # as $2, or derive a tag from the branch name using a simple heuristic.
-  if [ -n "$2" ]
+  # Figure out which tag to use for this image build;
+  # If TRAVIS_TAG is set, use that
+  # if not, use the name passed as $2
+  # or derive a tag from the branch name using a simple heuristic.
+  if [ -n "$TRAVIS_TAG" ]
+  then
+    git_branch=$TRAVIS_TAG
+    echo "Using $TRAVIS_TAG from TRAVIS_TAG for docker tag"
+  elif [ -n "$2" ]
   then
     git_branch=$2
     echo "Assuming Git branch '$git_branch' by explicit request"
