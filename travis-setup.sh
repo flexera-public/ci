@@ -1,5 +1,5 @@
 # VARIABLES
-DEFAULT_APT_DOCKER_PKG="docker-engine=1.12.5-0~ubuntu-trusty"
+DEFAULT_APT_DOCKER_PKG="docker-engine=1.12.5-0~ubuntu-xenial"
 
 docker_install()
 {
@@ -18,8 +18,8 @@ docker_install()
   else
     export APT_PARAMS=""
   fi
-  echo "*** Adding apt.dockerproject.org repository (trusty)"
-  echo 'deb "https://apt.dockerproject.org/repo" ubuntu-trusty main' | sudo tee /etc/apt/sources.list.d/docker.list
+  echo "*** Adding apt.dockerproject.org repository (xenial)"
+  echo 'deb "https://apt.dockerproject.org/repo" ubuntu-xenial main' | sudo tee /etc/apt/sources.list.d/docker.list
   sudo apt-get update
   echo "*** Installing $APT_DOCKER_PKG"
   sudo apt-get -y --allow-downgrades $APT_PARAMS -o Dpkg::Options::="--force-confnew" install $APT_DOCKER_PKG && docker -v
