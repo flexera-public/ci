@@ -19,7 +19,10 @@ docker_install()
     export APT_PARAMS=""
   fi
   echo "*** Adding download.docker.com repository (xenial)"
-  echo 'deb "https://download.docker.com/linux/ubuntu" ubuntu-xenial main' | sudo tee /etc/apt/sources.list.d/docker.list
+  sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
   sudo apt-get update
   echo "*** Installing $APT_DOCKER_PKG"
   sudo apt-get -y --allow-downgrades $APT_PARAMS -o Dpkg::Options::="--force-confnew" install $APT_DOCKER_PKG && docker -v
