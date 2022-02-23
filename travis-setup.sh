@@ -1,5 +1,5 @@
 # VARIABLES
-DEFAULT_APT_DOCKER_PKG="docker-ce=5:20.10.12~3-0~ubuntu-focal"
+APT_DOCKER_PKG="${1:-docker-ce=5:20.10.12~3-0~ubuntu-focal}"
 
 docker_install()
 {
