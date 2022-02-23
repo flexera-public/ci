@@ -19,7 +19,7 @@ docker_install()
     export APT_PARAMS=""
   fi
   echo "*** Adding apt.dockerproject.org repository (trusty)"
-  echo 'deb "https://download.docker.com/linux/ubuntu/dists" trusty main' | sudo tee /etc/apt/sources.list.d/docker.list
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
   sudo apt-get update
   echo "*** Installing $APT_DOCKER_PKG"
   sudo apt-get -y --allow-downgrades $APT_PARAMS -o Dpkg::Options::="--force-confnew" install $APT_DOCKER_PKG && docker -v
