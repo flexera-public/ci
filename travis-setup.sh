@@ -1,5 +1,6 @@
 # VARIABLES
-DEFAULT_APT_DOCKER_PKG=${1:-docker-ce=5:20.10.12~3-0~ubuntu-focal}
+DOCKER_VERSION=$1
+DEFAULT_APT_DOCKER_PKG=${DOCKER_VERSION:-docker-ce=5:20.10.12~3-0~ubuntu-focal}
 
 docker_install()
 {
