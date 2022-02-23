@@ -1,5 +1,5 @@
 # VARIABLES
-DEFAULT_APT_DOCKER_PKG="docker-engine=1.12.5-0~ubuntu-trusty"
+DEFAULT_APT_DOCKER_PKG="docker-engine=5:18.09.1~3-0~ubuntu-xenial"
 
 docker_install()
 {
