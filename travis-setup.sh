@@ -33,7 +33,7 @@ check_sudo()
   if [[ $TRAVIS_SUDO != "true" ]]
   then
     echo "!!! ERROR: you need a sudo-enabled (sudo: required) Travis build to use the specified options in travis-setup.sh script (probably you are requesting Docker)"
-    echo "Solution: export TRAVIS_SUDO=true" 
+    echo "!!! Solution: export TRAVIS_SUDO=true" 
     exit 10
   fi
 }
