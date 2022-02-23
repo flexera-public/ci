@@ -18,7 +18,10 @@ docker_install()
   else
     export APT_PARAMS=""
   fi
-  echo "*** Adding apt.dockerproject.org repository (trusty)"
+  echo "*** Adding download.docker.com repository (focal)"
+  sudo apt-get update
+  sudo apt-get install ca-certificates curl gnupg lsb-release
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
   sudo apt-get update
   echo "*** Installing $APT_DOCKER_PKG"
@@ -30,6 +33,7 @@ check_sudo()
   if [[ $TRAVIS_SUDO != "true" ]]
   then
     echo "!!! ERROR: you need a sudo-enabled (sudo: required) Travis build to use the specified options in travis-setup.sh script (probably you are requesting Docker)"
+    echo "Solution: export TRAVIS_SUDO=true" 
     exit 10
   fi
 }
